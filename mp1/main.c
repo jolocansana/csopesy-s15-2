@@ -42,20 +42,20 @@ int main () {
 
   switch (nArray[0][0]) {
     case 0:
-      printf("First-Come First-Serve (FCFS)");
+      printf("First-Come First-Serve (FCFS)\n");
       break;
     case 1:
-      printf("Non-preemptive Shortest-Job First (NSJF) ");
+      printf("Non-preemptive Shortest-Job First (NSJF) \n");
       break;
     case 2:
-      printf("Preemptive Shortest-Job First (PSJF)");
+      printf("Preemptive Shortest-Job First (PSJF)\n");
       break;
     case 3:
-      printf("Round-Robin (RR)");
+      printf("Round-Robin (RR)\n");
       rr(nArray);
       break;
     default:
-      printf("ERROR: No such algorithm.");
+      printf("ERROR: No such algorithm.\n");
       return 0;
   }
 
