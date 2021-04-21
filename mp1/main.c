@@ -1,4 +1,6 @@
 #include "text.h"
+#include "structures.h"
+
 #include "fcfs.h"
 #include "nsjf.h"
 #include "psjf.h"
@@ -8,7 +10,7 @@
 int main () {
 
   // Read txt file and place in nArray
-  char *fileName = "sampleInput.txt";
+  char *fileName = "sampleInput-rr.txt";
   FILE *inputFile = fopen (fileName, "rt");
 
   // CONTAINS THE VALUES IN int
@@ -52,6 +54,7 @@ int main () {
       break;
     case 2:
       printf("Preemptive Shortest-Job First (PSJF)\n");
+      psjf(nArray);
       break;
     case 3:
       printf("Round-Robin (RR)\n");
