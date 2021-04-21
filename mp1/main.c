@@ -4,6 +4,7 @@
 #include "psjf.h"
 #include "rr.h"
 
+
 int main () {
 
   // Read txt file and place in nArray
@@ -11,7 +12,7 @@ int main () {
   FILE *inputFile = fopen (fileName, "rt");
 
   // CONTAINS THE VALUES IN int
-  int nArray[250][4];
+  int nArray[250][6];
 
   int i,j;
 
@@ -43,9 +44,11 @@ int main () {
   switch (nArray[0][0]) {
     case 0:
       printf("First-Come First-Serve (FCFS)\n");
+      fcfs(nArray, nArray[0][1] + 1);
       break;
     case 1:
       printf("Non-preemptive Shortest-Job First (NSJF) \n");
+      nsjf(nArray, nArray[0][1] + 1);
       break;
     case 2:
       printf("Preemptive Shortest-Job First (PSJF)\n");
