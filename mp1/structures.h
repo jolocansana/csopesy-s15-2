@@ -1,5 +1,3 @@
-#define MAX 250
-
 typedef struct Process
 {
 	int doneQueue, waitTime, numOfIterations;

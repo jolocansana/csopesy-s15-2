@@ -9,7 +9,7 @@
 int main () {
 
   // Read txt file and place in nArray
-  char *fileName = "sampleInput-rr.txt";
+  char *fileName = "sampleInput-rr2.txt";
   FILE *inputFile = fopen (fileName, "rt");
 
   // CONTAINS THE VALUES IN int
