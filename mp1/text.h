@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX 1000
+#define MAX 300
 
-int parseText (FILE *inputFile, int nArray[][4])
+int parseText (FILE *inputFile, int nArray[][6])
 {
 	char cDump;
 	int i, j;
@@ -17,14 +17,14 @@ int parseText (FILE *inputFile, int nArray[][4])
 	while (fgets (line, MAX, inputFile))
 	{
     j = 0;
-    // printf ("%s", line);
+     //printf ("%s", line);
     token = strtok(line, " ");
 
 		while(token)
 		{
-      nArray[i][j] = atoi(token);
+      		nArray[i][j] = atoi(token);
 			token = strtok(NULL, " ");
-      j++;
+      		j++;
 		}
     i++;
   }  
