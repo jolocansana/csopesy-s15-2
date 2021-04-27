@@ -1,3 +1,9 @@
+// ***************************************************************
+// Names:  CANSANA, Jose Lorenzo      JAMALUL, Gabriel Rasheed
+// Group:   Group 2
+// Section:  S15
+// ***************************************************************
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

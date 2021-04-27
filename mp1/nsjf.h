@@ -1,3 +1,8 @@
+// ***************************************************************
+// Names:  CANSANA, Jose Lorenzo      JAMALUL, Gabriel Rasheed
+// Group:   Group 2
+// Section:  S15
+// ***************************************************************
 
 #include <stdio.h>
 #include <string.h>
@@ -71,6 +76,6 @@ void nsjf(int nArray[][6], int n) {
   sort_array(n, 6, nArray, 3);
 
   // Print the result.
- print(nArray, n, nTotalTime, nTurnAround);
+  print(nArray, n, nTotalTime, nTurnAround);
 }
 

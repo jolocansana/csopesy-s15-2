@@ -1,3 +1,9 @@
+// ***************************************************************
+// Names:  CANSANA, Jose Lorenzo      JAMALUL, Gabriel Rasheed
+// Group:   Group 2
+// Section:  S15
+// ***************************************************************
+
 #include "text.h"
 #include "structures.h"
 
@@ -7,10 +13,19 @@
 #include "rr.h"
 
 
-int main () {
+int main (int argc, char *argv[]) {
 
   // Read txt file and place in nArray
-  char *fileName = "sampleInput-rr2.txt";
+  // printf("Count: %d\n", argc);
+  
+  if (argc == 1) {
+    printf("ERROR: No file name input. Input file name by 'gcc main.c && main.exe <filename>' in command line.");
+    return 0;
+  }
+
+  char *fileName = argv[1];
+  // printf("%s", fileName);
+  // char *fileName = "sampleInput-nsjf1.txt";
   FILE *inputFile = fopen (fileName, "rt");
 
   // CONTAINS THE VALUES IN int

@@ -1,3 +1,9 @@
+// ***************************************************************
+// Names:  CANSANA, Jose Lorenzo      JAMALUL, Gabriel Rasheed
+// Group:   Group 2
+// Section:  S15
+// ***************************************************************
+
 #ifndef structures_h
 #define structures_h
 
@@ -19,8 +25,8 @@ void initialize_zero(int array[], int size, int value) {
 //sort the processes by its arrival time 
 void sort_array(int row, int column, int array[][6], int index) {
 	int i,j,k,temp;
-  for(i = 1; i < row; i++){
-    for( j = 1; j < row - i - 1; j++){
+  for(i = 1; i <= row; i++){
+    for( j = 1; j <= row - i - 1; j++){
       if(array[j][index] > array[j + 1][index]) {
         for( k = 0; k < column; k++) {
           temp = array[j][k];
@@ -36,7 +42,7 @@ void sort_array(int row, int column, int array[][6], int index) {
 void print(int nArray[][6], int n, int nTotalTime, int nTurnAround[]) {
 	int i;
   for(i = 1; i < n; i++) {
-    printf("[%d] Start time: %d End time: %d | Waiting time: %d\n", nArray[i][0], nArray[i][3], nArray[i][4], nArray[i][5]);
+    printf("P[%d]\nStart time: %d End time: %d\nWaiting time: %d\n", nArray[i][0], nArray[i][3], nArray[i][4], nArray[i][5]);
     printf("Turn Around Time: %d \n", nTurnAround[i]);
     printf("************************************\n");
   }
