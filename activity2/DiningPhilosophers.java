@@ -1,8 +1,10 @@
+import java.util.concurrent.Semaphore;
+
 public class DiningPhilosophers
 {
   enum State {THINKING, HUNGRY, EATING};
   State state[] = new State[5];
-  condition self[5];
+  Condition self[] = new Condition[5];
 
   void pickup(int i) {
     state[i] = State.HUNGRY;
@@ -23,13 +25,40 @@ public class DiningPhilosophers
         self[i].signal();
     }
   }
+
+  void start() {
+    
+  }
   
-  void initialization_code() {
-    for (int i = 0; i < 5; i++)
+  DiningPhilosophers(int max) {
+    for (int i = 0; i < max; i++)
       state[i] = State.THINKING;
   }
+}
 
-  public synchronized void safeMethod() {
+class Condition {
+  Semaphore mutex = new Semaphore(1);
+  Semaphore next = new Semaphore(0);
+  Semaphore x_sem = new Semaphore(0);
+  int x_count = 0;
+  int next_count = 0;
 
+  void wait() {
+    x_count++;
+    if (next_count > 0)
+      signal(next);
+    else
+      signal(mutex);
+    wait(x_sem);
+    x_count--;
+  }
+
+  void signal() {
+    if (x_count > 0) {
+      next_count++;
+      signal(x_sem);
+      wait(next);
+      next_count--;
+      }
   }
 }
