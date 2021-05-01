@@ -18,6 +18,7 @@ typedef struct MLFQProcess
   int isIOBurstable;
   int remainingTimeUntilIOBurst;
   int remainingTimeInIO;
+  int burstTime;
 } MLFQProcess;
 
 typedef struct queueStruct
@@ -109,6 +110,9 @@ int main () {
   int isBoost;
   int isActive;
   int foundFirst;
+  int turnaroundTime;
+  int waitingTime[MAX];
+  
 
   // DEBUGGING
   int isVerbose = 1; // set to 1 if you want to see step by step, if you want results only, set to 0
@@ -222,6 +226,7 @@ int main () {
         // Setup Active Process:      SAVE PROCESS IN ARRAY BY ITS ID - 1
         index = nArray[i][0] - 1;
         processes[index].numOfIterations = 0;
+        processes[index].burstTime = nArray[i][2];
         processes[index].processID = nArray[i][0];
         processes[index].arrivalTime = nArray[i][1];
         processes[index].totalExecutionTime = nArray[i][2];
@@ -400,7 +405,9 @@ int main () {
     }
 
   }
-
+  
+  int count=0;
+  int l;
 
   // 5. Print Output
   for(i = 0; i < doneQueue; i++){
@@ -422,14 +429,34 @@ int main () {
         
         // Compute and display waiting time
         // format: Waiting Time: <WT>
+        
 
         // Computer and display turnaround time
         // format: Turnaround Time: <TT>
+        turnaroundTime = processes[j].printingEndTime[processes[j].numOfIterations-1] - processes[j].arrivalTime;
+        printf("Turnaround Time: %d \n", turnaroundTime);
+        
+        for(l = 0; l<processes[j].numOfIterations; l++){
+        	if(processes[j].printingQueue[l] == -1){
+        		count++;
+			}		
+		}
+    
+        waitingTime[i] = turnaroundTime - processes[j].burstTime - (count*processes[j].IOLength);
+        printf("Waiting Time: %d \n", waitingTime[i]);
 
         printf("**********************************\n");
       }
     }
   }
+  int m;
+  float averageWaiting = 0;
+  
+  for(m=0;m<doneQueue;m++){
+  	averageWaiting += waitingTime[m];
+  }
+  averageWaiting/=(doneQueue*1.0);
+  printf("Average Waiting Time: %f \n", averageWaiting);
 
 
   return 0;
