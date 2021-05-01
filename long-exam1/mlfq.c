@@ -98,16 +98,17 @@ int main () {
   // 4 - J
 
   // Variables
-  int i,j, index;
+  int i,j,k, index;
   int isComplete = 0;
   int timeElapsed;
   int firstRowProcess;
   int arraySize, numOfProcesses, numOfQueues;
   int remainingPrioBoost;
-  int currProcessID, isCurrFound;
+  int currProcessID, isCurrFound, prevCurrProcessID;
   int doneQueue;
   int isBoost;
   int isActive;
+  int foundFirst;
 
   // DEBUGGING
   int isVerbose = 1; // set to 1 if you want to see step by step, if you want results only, set to 0
@@ -174,7 +175,7 @@ int main () {
   MLFQProcess processes[MAX] = {};
 
   // Variables
-  timeElapsed = 1;
+  timeElapsed = 0;
   firstRowProcess = nArray[0][0]+1;
   arraySize =  nArray[0][0]+nArray[0][1]+1;
   remainingPrioBoost = nArray[0][2];
@@ -183,7 +184,9 @@ int main () {
   isActive = 0;
   isBoost = 0;
   currProcessID = -1;
+  prevCurrProcessID = -1;
   doneQueue = 0;
+  foundFirst = 0;
 
 
   // 4. Multilevel Feedback Queue
@@ -218,6 +221,7 @@ int main () {
         queues[0].tail++;
         // Setup Active Process:      SAVE PROCESS IN ARRAY BY ITS ID - 1
         index = nArray[i][0] - 1;
+        processes[index].numOfIterations = 0;
         processes[index].processID = nArray[i][0];
         processes[index].arrivalTime = nArray[i][1];
         processes[index].totalExecutionTime = nArray[i][2];
@@ -251,83 +255,120 @@ int main () {
           queues[processes[currProcessID-1].priority].queue[queues[processes[currProcessID-1].priority].tail] = currProcessID;
           queues[processes[currProcessID-1].priority].tail++;
           queues[processes[currProcessID-1].priority].head++;
-          if(isVerbose) printf("BAZINGA!\n");
+          processes[currProcessID-1].remainingTimeQuantum = queues[processes[currProcessID-1].priority].timeQuantum;
+          if(isVerbose) printf("BAZINGA, PROCESS GOT PREEMPTED! P[%d] now has TimeQ %d\n", currProcessID, processes[currProcessID-1].remainingTimeQuantum);
+
+          processes[currProcessID-1].printingEndTime[processes[currProcessID-1].numOfIterations] = timeElapsed;
+          processes[currProcessID-1].numOfIterations++;
         }
+
+        prevCurrProcessID = currProcessID;
         currProcessID = queues[i].queue[queues[i].head];
         isCurrFound = 1;
         isActive = 1;
+        foundFirst = 1;
+
+        if(currProcessID != prevCurrProcessID) {
+          // PRINTING VARIABLES
+          processes[currProcessID-1].printingQueue[processes[currProcessID-1].numOfIterations] = queues[processes[currProcessID-1].priority].queueID;
+          processes[currProcessID-1].printingStartTime[processes[currProcessID-1].numOfIterations] = timeElapsed;
+          
+          if(isVerbose) printf("NEW PROCESS MATCHED at time %d!\n", processes[currProcessID-1].printingStartTime[processes[currProcessID-1].numOfIterations]);
+        }
+
+        if(isVerbose) printf("TEMP CHECK ON START TIME OF PROCESS %d: %d with num %d\n", currProcessID, processes[currProcessID-1].printingStartTime[processes[currProcessID-1].numOfIterations], processes[currProcessID-1].numOfIterations);
+
       }
     }
 
-    // TEST PRINT
-    if(isVerbose) printf("P[%d] at %d with prio %d\n", currProcessID, timeElapsed, processes[currProcessID-1].priority);
-    if(isVerbose) printf("Q[0] head: %d tail %d\n", queues[0].head, queues[0].tail);
-    if(isVerbose) printf("Q[1] head: %d tail %d\n", queues[1].head, queues[1].tail);
+    if(isCurrFound){
+      // TEST PRINT
+      if(isVerbose) printf("P[%d] at %d with prio %d\n", currProcessID, timeElapsed, processes[currProcessID-1].priority);
+      if(isVerbose) printf("Q[0] head: %d tail %d\n", queues[0].head, queues[0].tail);
+      if(isVerbose) printf("Q[1] head: %d tail %d\n", queues[1].head, queues[1].tail);
 
-    // Decrement H, remainingTimeUntilIOBurst, remainingTimeQuantum of current process.
-    processes[currProcessID-1].totalExecutionTime--;
-    processes[currProcessID-1].remainingTimeQuantum--;
-    if(processes[currProcessID-1].isIOBurstable) processes[currProcessID-1].remainingTimeUntilIOBurst--;
+      // Decrement H, remainingTimeUntilIOBurst, remainingTimeQuantum of current process.
+      processes[currProcessID-1].totalExecutionTime--;
+      processes[currProcessID-1].remainingTimeQuantum--;
+      if(processes[currProcessID-1].isIOBurstable) processes[currProcessID-1].remainingTimeUntilIOBurst--;
 
-    if(isVerbose) printf("Time Left: %d\n", processes[currProcessID-1].totalExecutionTime);
+      if(isVerbose) printf("Time Left: %d\n", processes[currProcessID-1].totalExecutionTime);
 
-    // Decrement all processes in IO array
-    for(i = 0; i < numOfProcesses; i++) {
-      if (IOQueue[i][1] == 1){ // if there is a process in IO
-        processes[i].remainingTimeInIO--;
+      // Decrement all processes in IO array
+      for(i = 0; i < numOfProcesses; i++) {
+        if (IOQueue[i][1] == 1){ // if there is a process in IO
+          processes[i].remainingTimeInIO--;
 
-        
-        // Check in IO array for any process remainingTimeInIO = 0; if 0, add process to its priorityQueue (a custom array variable) and increment tail of queue
-        // NOTE: priorityQueue gets the priority of the queue and NOT its queueID since priority is unique but save queueID in queuea array in structure for printing
-        if(processes[i].remainingTimeInIO == 0){
-          if(isVerbose) printf("PROCESS %d IS DONE IO BURSTING AT %d!\n", i+1, timeElapsed+1);
-          queues[processes[i].priority].queue[queues[processes[i].priority].tail] = processes[i].processID;
-          queues[processes[i].priority].tail++;
+          
+          // Check in IO array for any process remainingTimeInIO = 0; if 0, add process to its priorityQueue (a custom array variable) and increment tail of queue
+          // NOTE: priorityQueue gets the priority of the queue and NOT its queueID since priority is unique but save queueID in queuea array in structure for printing
+          if(processes[i].remainingTimeInIO == 0){
+            if(isVerbose) printf("PROCESS %d IS DONE IO BURSTING AT %d!\n", i+1, timeElapsed+1);
+            queues[processes[i].priority].queue[queues[processes[i].priority].tail] = processes[i].processID;
+            queues[processes[i].priority].tail++;
 
-          // Reset remainingTimeUntilBurst to J (how often IO) of process
-          processes[i].remainingTimeUntilIOBurst = processes[i].IOBurstCooldown;
+            // Reset remainingTimeUntilBurst to J (how often IO) of process
+            processes[i].remainingTimeUntilIOBurst = processes[i].IOBurstCooldown;
 
-          // IOQueue column 1 back to 0
-          IOQueue[i][1] = 0; 
+            // IOQueue column 1 back to 0
+            IOQueue[i][1] = 0; 
+
+            // PRINTING VARIABLES
+            processes[i].printingEndTime[processes[i].numOfIterations] = timeElapsed+1;
+            processes[i].numOfIterations++;
+          }
+        }
+      }
+
+      // printf("REMAINING TQ OF P%d: %d\n", currProcessID, processes[currProcessID-1].remainingTimeQuantum);
+
+      // If 1 || 2 || 3, increment head of queue, and [FOR PRINTING] add timeElapse to endTimes of the process. Increment numOfIterations as well for the process.        
+      if(processes[currProcessID-1].totalExecutionTime == 0 || processes[currProcessID-1].remainingTimeQuantum == 0 || processes[currProcessID-1].remainingTimeUntilIOBurst == 0) {
+        queues[processes[currProcessID-1].priority].head++;
+        isActive = 0;
+
+        // PRINTING VARIABLES
+        processes[currProcessID-1].printingEndTime[processes[currProcessID-1].numOfIterations] = timeElapsed+1;
+        processes[currProcessID-1].numOfIterations++;
+
+        if(isVerbose) printf("PROCESS ITER: %d to %d (numOfIteration: %d)\n", processes[currProcessID-1].printingStartTime[processes[currProcessID-1].numOfIterations-1] , processes[currProcessID-1].printingEndTime[processes[currProcessID-1].numOfIterations-1] ,processes[currProcessID-1].numOfIterations);
+
+        // (1) If H is 0, add doneQueue to doneQueue field of struct and increment doneQueue;
+        if (processes[currProcessID-1].totalExecutionTime == 0){
+          processes[currProcessID-1].doneQueue = doneQueue; // doneQueue the order of display
+          doneQueue++;
+          if(isVerbose) printf("PROCESS %d IS DONE AT %d WITH DONE QUEUE %d\n", currProcessID, timeElapsed, doneQueue);
+        } 
+        else if (processes[currProcessID-1].remainingTimeQuantum == 0 && processes[currProcessID-1].remainingTimeUntilIOBurst == 0) {
+          if(processes[currProcessID-1].priority != numOfQueues-1) processes[currProcessID-1].priority++;
+          IOQueue[processes[currProcessID-1].processID-1][1] = 1;
+          processes[currProcessID-1].remainingTimeInIO = processes[currProcessID-1].IOLength;
+          if(isVerbose) printf("PROCESS %d IS IO BURSTING AT %d! IT IS ALSO DEMOTED!\n", currProcessID, timeElapsed+1);
+
+          // PRINTING VARIABLES
+          processes[currProcessID-1].printingQueue[processes[currProcessID-1].numOfIterations] = -1;
+          processes[currProcessID-1].printingStartTime[processes[currProcessID-1].numOfIterations] = timeElapsed+1;
+        }
+        // (2) If remainingTimeQuantum is 0, assign priority of process to priority++ and increment tail of new priorityQueue;
+        else if (processes[currProcessID-1].remainingTimeQuantum == 0) {
+          if(processes[currProcessID-1].priority != numOfQueues-1) processes[currProcessID-1].priority++;
+          queues[processes[currProcessID-1].priority].queue[queues[processes[currProcessID-1].priority].tail] = processes[currProcessID-1].processID;
+          queues[processes[currProcessID-1].priority].tail++;
+          processes[currProcessID-1].remainingTimeQuantum = queues[processes[currProcessID-1].priority].timeQuantum;
+          if(isVerbose) printf("PROCESS %d DEMOTED TO PRIORITY: %d with TimeQ %d\n", currProcessID, processes[currProcessID-1].priority, queues[processes[currProcessID-1].priority].timeQuantum);
+        } 
+        // (3) If remainingTimeUntilBurst is 0, add process to IO queue, add remainingTimeInIO to process
+        else {
+          IOQueue[processes[currProcessID-1].processID-1][1] = 1;
+          processes[currProcessID-1].remainingTimeInIO = processes[currProcessID-1].IOLength;
+          if(isVerbose) printf("PROCESS %d IS IO BURSTING AT %d!\n", currProcessID, timeElapsed+1);
+          
+          // PRINTING VARIABLES
+          processes[currProcessID-1].printingQueue[processes[currProcessID-1].numOfIterations] = -1;
+          processes[currProcessID-1].printingStartTime[processes[currProcessID-1].numOfIterations] = timeElapsed+1;
         }
       }
     }
-
-    // printf("REMAINING TQ OF P%d: %d\n", currProcessID, processes[currProcessID-1].remainingTimeQuantum);
-
-    // If 1 || 2 || 3, increment head of queue, and [FOR PRINTING] add timeElapse to endTimes of the process. Increment numOfIterations as well for the process.        
-    if(processes[currProcessID-1].totalExecutionTime == 0 || processes[currProcessID-1].remainingTimeQuantum == 0 || processes[currProcessID-1].remainingTimeUntilIOBurst == 0) {
-      queues[processes[currProcessID-1].priority].head++;
-      isActive = 0;
-
-      // (1) If H is 0, add doneQueue to doneQueue field of struct and increment doneQueue;
-      if (processes[currProcessID-1].totalExecutionTime == 0){
-        processes[currProcessID-1].doneQueue = doneQueue; // doneQueue the order of display
-        doneQueue++;
-        if(isVerbose) printf("PROCESS %d IS DONE AT %d WITH DONE QUEUE %d\n", currProcessID, timeElapsed, doneQueue);
-      } 
-      else if (processes[currProcessID-1].remainingTimeQuantum == 0 && processes[currProcessID-1].remainingTimeUntilIOBurst == 0) {
-        if(processes[currProcessID-1].priority != numOfQueues-1) processes[currProcessID-1].priority++;
-        IOQueue[processes[currProcessID-1].processID-1][1] = 1;
-        processes[currProcessID-1].remainingTimeInIO = processes[currProcessID-1].IOLength;
-        if(isVerbose) printf("PROCESS %d IS IO BURSTING AT %d! IT IS ALSO DEMOTED!\n", currProcessID, timeElapsed+1);
-      }
-      // (2) If remainingTimeQuantum is 0, assign priority of process to priority++ and increment tail of new priorityQueue;
-      else if (processes[currProcessID-1].remainingTimeQuantum == 0) {
-        if(processes[currProcessID-1].priority != numOfQueues-1) processes[currProcessID-1].priority++;
-        queues[processes[currProcessID-1].priority].queue[queues[processes[currProcessID-1].priority].tail] = processes[currProcessID-1].processID;
-        queues[processes[currProcessID-1].priority].tail++;
-        processes[currProcessID-1].remainingTimeQuantum = queues[processes[currProcessID-1].priority].timeQuantum;
-        if(isVerbose) printf("PROCESS %d DEMOTED TO PRIORITY: %d with TimeQ %d\n", currProcessID, processes[currProcessID-1].priority, queues[processes[currProcessID-1].priority].timeQuantum);
-      } 
-      // (3) If remainingTimeUntilBurst is 0, add process to IO queue, add remainingTimeInIO to process
-      else {
-        IOQueue[processes[currProcessID-1].processID-1][1] = 1;
-        processes[currProcessID-1].remainingTimeInIO = processes[currProcessID-1].IOLength;
-        if(isVerbose) printf("PROCESS %d IS IO BURSTING AT %d!\n", currProcessID, timeElapsed+1);
-      }
-    }
-    
 
 
     // ==================
@@ -335,16 +376,19 @@ int main () {
     // ==================
     // Increment timeElapsed
     timeElapsed++;
-    
-    // Decrement remainingPrioBoost;
-    remainingPrioBoost--;
-    if(isVerbose) printf("TIME TO BOOST: %d\n", remainingPrioBoost);
-    
-    // Check if remainingPrioBoost is 0; if true, set isBoost true
-    if (remainingPrioBoost == 0) {
-      isBoost = 1;
-      remainingPrioBoost = nArray[0][2];
-      if(isVerbose) printf("PRIO BOOST RESET TO: %d\n", remainingPrioBoost);
+
+    // Only start prioboost counter until first encounter
+    if (foundFirst) {
+      // Decrement remainingPrioBoost;
+      remainingPrioBoost--;
+      if(isVerbose) printf("TIME TO BOOST: %d\n", remainingPrioBoost);
+      
+      // Check if remainingPrioBoost is 0; if true, set isBoost true
+      if (remainingPrioBoost == 0) {
+        isBoost = 1;
+        remainingPrioBoost = nArray[0][2];
+        if(isVerbose) printf("PRIO BOOST RESET TO: %d\n", remainingPrioBoost);
+      }
     }
 
     // Check nArray processes if all H are 0; if true, isComplete = 1 to end MLFQ;
@@ -366,6 +410,15 @@ int main () {
 
         // Loop through and display queue, start time, and end time of process
         // format: Q[X]/[IO] Start time: <S1> End time: <E1>
+        for (k = 0; k < processes[j].numOfIterations; k++) {
+          if (processes[j].printingQueue[k] == -1) {
+            printf("[IO] ");
+          } else {
+            printf("Q[%d] ", processes[j].printingQueue[k]);
+          }
+
+          printf("Start time: %d End time: %d\n", processes[j].printingStartTime[k], processes[j].printingEndTime[k]);
+        }
         
         // Compute and display waiting time
         // format: Waiting Time: <WT>
